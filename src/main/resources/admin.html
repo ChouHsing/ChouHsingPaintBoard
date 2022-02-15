@@ -107,17 +107,8 @@
             <p id="info"></p>
         </div>
     </div>
-    <!--在这里编写你的代码-->
-
-    <!--[if (gte IE 9)|!(IE)]><!-->
-    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdn.luogu.com.cn/js/amazeui.min.js"></script>
-    <!--<![endif]-->
-    <!--[if lte IE 8 ]>
-<script src="https://libs.baidu.com/jquery/1.11.3/jquery.min.js"></script>
-<script src="https://cdn.staticfile.org/modernizr/2.8.3/modernizr.js"></script>
-<script src="assets/js/amazeui.ie8polyfill.min.js"></script>
-<![endif]-->
     <script>
         let ctx = document.getElementById("mycanvas").getContext("2d");
         H = 400;
@@ -125,13 +116,8 @@
         nowColor = 0x000000;
         scale = 1;
         dragging = false;
-        lastMouseX = null;
-        lastMouseY = null;
         dragged = 0;
-        lastTime = 1577874127;
-        timeLimit = 0;
         rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
-        nowInterval = 0;
         currentId = 0;
         adminPassword = prompt("管理员密码")
         $.post('/paintBoard/test_admin', JSON.stringify({ password: adminPassword }))
