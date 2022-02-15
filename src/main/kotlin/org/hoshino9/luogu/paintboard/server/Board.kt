@@ -10,6 +10,7 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.sessions.*
+import kotlinx.coroutines.launch
 import org.litote.kmongo.*
 import java.awt.image.BufferedImage
 import java.io.File
@@ -142,16 +143,18 @@ fun Routing.board() {
                     status = HttpStatusCode.OK
                 )
 
-                onPaint(req, id)
+                launch { onPaint(req, id) }
 
-                mongo.getCollection<PaintRecord>("paintboard$id")
-                    .insertOne(
-                        PaintRecord(
-                            System.currentTimeMillis(),
-                            call.authentication.principal<UserSession>()?.username ?: "not login?",
-                            req.x, req.y, req.color.toInt(16)
+                launch {
+                    mongo.getCollection<PaintRecord>("paintboard$id")
+                        .insertOne(
+                            PaintRecord(
+                                System.currentTimeMillis(),
+                                call.authentication.principal<UserSession>()?.username ?: "not login?",
+                                req.x, req.y, req.color.toInt(16)
+                            )
                         )
-                    )
+                }
 
             } catch (e: Throwable) {
                 call.respondText(

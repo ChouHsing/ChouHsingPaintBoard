@@ -422,24 +422,38 @@
             $('#login-modal').modal('close');
             $('#register-modal').modal();
         });
-        $("#send-captcha").click(function () { // TODO 点击“发送验证码”时不提交表单
+        function timeDown(seconds) {
+            seconds = seconds.toString().length == 1 ? '0' + seconds : seconds;
+            $("#send-captcha").text(seconds + "后重试");
+            if (parseInt(seconds) > 1) {
+                setTimeout(function () {
+                    timeDown(seconds - 1);
+                }, 1000)
+            }
+            else {
+                $("#send-captcha").text("发送验证码");
+                $("#send-captcha").css({ 'background-color': 'blue' });
+                $("#send-captcha").attr("disabled", false);
+            }
+        };
+        $("#send-captcha").click(function (event) {
+            event.preventDefault()
             let email = $('#register-form').serializeObject().email;
-            let suffix = '@bupt.edu.cn' // TODO 在@bupt.cn与@bupt.edu.cn间切换
             console.log($('#register-form').serializeObject());
-            $.get('/paintBoard/captcha?email=' + email + suffix
+            $.get('/paintBoard/captcha?email=' + email
                 , function (resp) {
                     console.log(resp);
                     if (resp.status !== 200) {
                         alert(resp.data);
                     } else {
-                        // TODO 倒计时60s
+                        $("#send-captcha").css({ 'background-color': 'gray' });
+                        $("#send-captcha").attr("disabled", true);
+                        timeDown(5)
                     }
                 });
         })
         $('#register-form').submit(function () {
             let data = $('#register-form').serializeObject();
-            let suffix = '@bupt.edu.cn' // TODO 在@bupt.cn与@bupt.edu.cn间切换
-            data.email += suffix;
             $.post('/paintBoard/user', JSON.stringify(data), function (resp) {
                 if (resp.status !== 200) {
                     alert(resp.data);
@@ -474,7 +488,7 @@
 
         getCountDown(lastTime + timeLimit);
 
-        $('.switcher').click(function(){
+        $('.switcher').click(function () {
             $('.switcher').removeClass("am-active");
             $(this).addClass("am-active");
             let id = $(this).attr('data-id');
