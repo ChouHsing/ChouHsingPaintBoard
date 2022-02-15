@@ -81,18 +81,25 @@
             <h1 class="am-topbar-brand">
                 <a href="#">周行算协冬日绘板</a>
             </h1>
-            <div class="am-topbar-right">
-                <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm" id="login-button">登录</button>
-                <div class="am-dropdown" data-am-dropdown>
-                    <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm am-dropdown-toggle" id="user-dropdown"
-                        data-am-dropdown-toggle>
-                        <span id="username"></span>
-                        <span class="am-icon-caret-down"></span>
-                    </button>
-                    <ul class="am-dropdown-content">
-                        <li><a href="/paintBoard/logout" id="logout"><span class="am-icon-sign-out"></span>登出</a>
-                        </li>
-                    </ul>
+            <div class="am-collapse am-topbar-collapse">
+                <ul class="am-nav am-nav-pills am-topbar-nav">
+                    <li class="switcher am-active" data-id=0><a href="#">燃情冬梦</a></li>
+                    <li class="switcher" data-id=1><a href="#">福虎迎春</a></li>
+                    <li class="switcher" data-id=2><a href="#">神笔点睛</a></li>
+                </ul>
+                <div class="am-topbar-right">
+                    <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm" id="login-button">登录</button>
+                    <div class="am-dropdown" data-am-dropdown>
+                        <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm am-dropdown-toggle"
+                            id="user-dropdown" data-am-dropdown-toggle>
+                            <span id="username"></span>
+                            <span class="am-icon-caret-down"></span>
+                        </button>
+                        <ul class="am-dropdown-content">
+                            <li><a href="/paintBoard/logout" id="logout"><span class="am-icon-sign-out"></span>登出</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -233,6 +240,9 @@
         timeLimit = 0;
         rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
         nowInterval = 0;
+        currentId = 0;
+
+        initialPaint(currentId);
 
         function update(y, x, color) {
             if (dragged) {
@@ -317,7 +327,7 @@
             var y = parseInt(event.offsetY / scale);
             lastTime = (new Date()) / 1000;
             getCountDown(lastTime + timeLimit);
-            $.post("/paintBoard/paint?id=0", JSON.stringify({
+            $.post("/paintBoard/paint?id=" + currentId, JSON.stringify({
                 x: x,
                 y: y,
                 color: nowColor
@@ -482,9 +492,18 @@
 
         getCountDown(lastTime + timeLimit);
 
+        $('.switcher').click(function(){
+            console.log("hey!");
+            $('.switcher').removeClass("am-active");
+            $(this).addClass("am-active");
+            let id = $(this).attr('data-id');
+            currentId = id;
+            ctx.clearRect(0, 0, 800, 400);
+            initialPaint(id);
+        })
+
         function initialPaint(id) {
             $.get("/paintBoard/board?id=" + id, function (resp) {
-                console.log("get")
                 let imgData = ctx.createImageData(800, 400);
                 let data = imgData.data
                 resp.split(';').map(function (colorStr, x) {
@@ -500,13 +519,12 @@
             })
         }
 
-
         var ws = null;
         function connectWs() {
             try {
                 ws = new WebSocket('${wsurl}/paintBoard/ws');
             } catch (e) {
-                alert("无法连接追踪服务器");
+                //alert("无法连接追踪服务器");
                 return;
             }
 
@@ -521,17 +539,12 @@
 
             ws.onmessage = function (event) {
                 var data = JSON.parse(event.data);
-                if (data.type === "paintboard_update") {
-                    if (data.id == 0) {
+                if (data.id == currentId) {
+                    if (data.type === "paintboard_update") {
                         update(data.y, data.x, data.color);
+                    } else if (data.type === "refresh") {
+                        initialPaint(currentId)
                     }
-                } else if (data.type === "refresh") {
-                    if (data.id == 0) {
-                        initialPaint(0)
-                    }
-                }
-                else if (data.type === "result") {
-                    initialPaint(0)
                 }
             };
         }
