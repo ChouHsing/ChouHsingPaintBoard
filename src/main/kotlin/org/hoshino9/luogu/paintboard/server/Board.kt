@@ -10,6 +10,7 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.sessions.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.litote.kmongo.*
 import java.awt.image.BufferedImage
@@ -19,7 +20,7 @@ import javax.imageio.ImageIO
 class Board() {
     private val data = Array(800) { IntArray(400) }
 
-    constructor(initImage: BufferedImage?, records: List<PaintRecord>) : this() {
+    constructor(initImage: BufferedImage?) : this() {
         if (initImage != null) {
             if (initImage.width < 800 || initImage.height < 400) throw Exception("The image is too small")
             for (x in 0 until 800) {
@@ -27,9 +28,6 @@ class Board() {
                     data[x][y] = initImage.getRGB(x, y) and 0xffffff
                 }
             }
-        }
-        for (record in records) {
-            data[record.x][record.y] = record.color
         }
     }
 
@@ -81,9 +79,12 @@ suspend fun loadBoard(id: Int, time: Long) {
 
 suspend fun readBoard(id: Int, time: Long): Board {
     val recordList = mongo.getCollection<PaintRecord>("paintboard$id")
-        .find(PaintRecord::time lte time)
-        .toList()
-    return Board(initImages[id], recordList)
+        .find(PaintRecord::time lte time).toFlow()
+    val board = Board(initImages[id])
+    recordList.collect {
+        board[it.x, it.y] = it.color
+    }
+    return board
 }
 
 suspend fun rollback(id: Int, time: Long) {
