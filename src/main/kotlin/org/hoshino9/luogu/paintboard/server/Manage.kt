@@ -8,24 +8,29 @@ import io.ktor.request.receive
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.PipelineContext
-import kotlinx.coroutines.*
 
-import org.litote.kmongo.*
-import java.awt.Paint
-import java.util.*
 
 suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: suspend PipelineContext<*, ApplicationCall>. () -> Unit) {
-    val body = call.receive<String>().parseJson().asJsonObject
+    try {
+        val body = call.receive<String>().parseJson().asJsonObject
+        val password = body["password"].asString
 
-    val password = body["password"].asString
-
-    if (password == config.getProperty("password")) {
-        block()
-    } else call.respond(HttpStatusCode.Forbidden)
+        if (password == config.getProperty("password")) {
+            block()
+        } else call.respond(HttpStatusCode.Forbidden)
+    } catch (e: Exception) {
+        call.respond(HttpStatusCode.Forbidden)
+    }
 }
 
 fun Routing.managePage() {
-    get("/paintBoard/history") {
+    post("/paintBoard/test_admin") {
+        manageRequest {
+            call.respond(HttpStatusCode.OK)
+        }
+    }
+
+    post("/paintBoard/history") {
         manageRequest {
             try {
                 val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
@@ -42,7 +47,7 @@ fun Routing.managePage() {
         }
     }
 
-    get("/paintBoard/blame") {
+    post("/paintBoard/blame") {
         manageRequest {
             try {
                 val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")

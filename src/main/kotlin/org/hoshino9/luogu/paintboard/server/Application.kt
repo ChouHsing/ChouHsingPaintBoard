@@ -142,7 +142,13 @@ fun main() {
                 if (config.containsKey("wsurl")) {
                     html = html.replace("\${wsurl}", config.getProperty("wsurl"))
                 }
-
+                call.respondText(html, ContentType.Text.Html)
+            }
+            get("/paintBoard/admin") {
+                var html = String(Unknown::class.java.getResourceAsStream("/admin.html").readBytes())
+                if (config.containsKey("wsurl")) {
+                    html = html.replace("\${wsurl}", config.getProperty("wsurl"))
+                }
                 call.respondText(html, ContentType.Text.Html)
             }
 
