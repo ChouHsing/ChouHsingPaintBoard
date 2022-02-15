@@ -49,7 +49,8 @@ val boardNum = config.getProperty("boardNum").toInt()
 val boards = Array(boardNum) { Board() }
 val stringCache = Array<String?>(boardNum) { null }
 
-val initImages = Array(boardNum) { id -> tryReadImage("initImage/$id.jpg") }
+val img = tryReadImage("initImage/0.png")
+val initImages = Array(boardNum) { img }
 
 fun tryReadImage(path: String): BufferedImage? {
     return try {
