@@ -87,7 +87,12 @@ suspend fun onRefresh(id: Int) {
 fun main() {
     loadConfig()
     connectMongoDB()
-
+    var indexPage = String(Unknown::class.java.getResourceAsStream("/paintboard.html").readBytes())
+    var adminPage = String(Unknown::class.java.getResourceAsStream("/admin.html").readBytes())
+    if (config.containsKey("wsurl")) {
+        indexPage = indexPage.replace("\${wsurl}", config.getProperty("wsurl"))
+        adminPage = adminPage.replace("\${wsurl}", config.getProperty("wsurl"))
+    }
     delay = (config.getProperty("delay")?.toLong() ?: 0) * 1000
 
     runBlocking {
@@ -138,18 +143,10 @@ fun main() {
             board()
 
             get("/paintBoard") {
-                var html = String(Unknown::class.java.getResourceAsStream("/paintboard.html").readBytes())
-                if (config.containsKey("wsurl")) {
-                    html = html.replace("\${wsurl}", config.getProperty("wsurl"))
-                }
-                call.respondText(html, ContentType.Text.Html)
+                call.respondText(indexPage, ContentType.Text.Html)
             }
             get("/paintBoard/admin") {
-                var html = String(Unknown::class.java.getResourceAsStream("/admin.html").readBytes())
-                if (config.containsKey("wsurl")) {
-                    html = html.replace("\${wsurl}", config.getProperty("wsurl"))
-                }
-                call.respondText(html, ContentType.Text.Html)
+                call.respondText(adminPage, ContentType.Text.Html)
             }
 
             webSocket("/paintBoard/ws") {
