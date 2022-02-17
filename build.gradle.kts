@@ -34,6 +34,8 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("com.aliyun:dm20151123:1.0.0")
     implementation("org.litote.kmongo:kmongo-coroutine:4.4.0")
+    implementation("org.jcodec:jcodec:0.2.5")
+    implementation("org.jcodec:jcodec-javase:0.2.5")
 }
 
 tasks {
