@@ -32,11 +32,7 @@ fun Routing.managePage() {
                 val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
                 val time = call.request.queryParameters["time"]?.toLong() ?: throw RequestException("未指定时间")
                 val board = readBoard(id, time)
-                call.respondText(
-                    text = board.toString(),
-                    contentType = ContentType.Application.Json,
-                    status = HttpStatusCode.OK
-                )
+                call.respondText(text = board.toString())
             }
         }
     }
