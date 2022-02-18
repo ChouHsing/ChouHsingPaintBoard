@@ -27,6 +27,7 @@ data class User(val _id: Id<User>, val username: String, val email: String, val 
 data class UserSession(val id: String, val username: String, val time: Long) : Principal
 data class RegisterSession(val email: String, val captcha: String, val time: Long) : Principal
 data class Identity(val email: String, val name: String, val stuId: String)
+data class Admin(val time: Long, val password: String)
 data class PaintRecord(
     val time: Long,
     val user: String,
