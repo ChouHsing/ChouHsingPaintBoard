@@ -1,13 +1,13 @@
 package org.hoshino9.luogu.paintboard.server
 
 import com.google.gson.Gson
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
+import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.request.receive
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.util.pipeline.PipelineContext
+import io.ktor.util.pipeline.*
+import org.litote.kmongo.lte
 
 
 suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: suspend PipelineContext<*, ApplicationCall>. () -> Unit) {
@@ -15,7 +15,9 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: suspend Pip
         val body = call.receive<String>().parseJson().asJsonObject
         val password = body["password"].asString
 
-        if (password == config.getProperty("password")) {
+        if (password == mongo.getCollection<Admin>()
+                .find(Admin::time lte System.currentTimeMillis())
+                .descendingSort(Admin::time).first() ?.password) {
             block()
         } else call.respond(HttpStatusCode.Forbidden)
     } catch (e: Exception) {
@@ -24,12 +26,6 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: suspend Pip
 }
 
 fun Routing.managePage() {
-    post("/paintBoard/test_admin") {
-        manageRequest {
-            call.respond(HttpStatusCode.OK)
-        }
-    }
-
     post("/paintBoard/history") {
         manageRequest {
             try {

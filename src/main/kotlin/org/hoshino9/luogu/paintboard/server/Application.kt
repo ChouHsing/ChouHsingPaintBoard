@@ -23,9 +23,11 @@ import java.io.File
 import java.util.*
 
 data class PaintRequest(val x: Int, val y: Int, val color: String)
-data class User(val _id: Id<User>?, val username: String, val email: String, val password: String)
+data class User(val _id: Id<User>, val username: String, val email: String, val password: String, val name: String, val stuId: String)
 data class UserSession(val id: String, val username: String, val time: Long) : Principal
 data class RegisterSession(val email: String, val captcha: String, val time: Long) : Principal
+data class Identity(val email: String, val name: String, val stuId: String)
+data class Admin(val time: Long, val password: String)
 data class PaintRecord(
     val time: Long,
     val user: String,
@@ -94,6 +96,8 @@ fun main() {
         adminPage = adminPage.replace("\${wsurl}", config.getProperty("wsurl"))
     }
     delay = (config.getProperty("delay")?.toLong() ?: 0) * 1000
+    indexPage = indexPage.replace("\${delay}", (delay / 1000).toString())
+
 
     runBlocking {
         initDB()

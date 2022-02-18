@@ -181,20 +181,15 @@
 
                         <div class="am-form-group">
                             <label for="reg-email" class="am-icon-envelope">邮箱</label>
-                            <div class="am-g">
-                                <div class="am-u-sm-8">
-                                    <input name="email" type="text" id="reg-email" minlength="3" placeholder="邮箱"
-                                        class="am-form-field" required />
-                                </div>
-                                <div class="am-u-sm-4">@bupt.edu.cn</div>
-                            </div>
+                            <input name="email" type="email" id="reg-email" minlength="3" placeholder="邮箱"
+                                   class="am-form-field" required />
                         </div>
 
                         <div class="am-form-group">
-                            <label for="captcha" class="am-icon-check">验证码</label>
+                            <label for="reg-captcha" class="am-icon-check">验证码</label>
                             <div class="am-g">
                                 <div class="am-u-sm-8">
-                                    <input name="captcha" type="email" id="reg-captcha" minlength="6" placeholder="验证码"
+                                    <input name="captcha" type="text" id="reg-captcha" minlength="6" placeholder="验证码"
                                         class="am-form-field" required />
                                 </div>
                                 <div class="am-u-sm-4">
@@ -204,7 +199,7 @@
                         </div>
 
                         <div class="am-form-group">
-                            <label for="" class="am-icon-lock">密码</label>
+                            <label for="reg-password" class="am-icon-lock">密码</label>
                             <input name="password" type="password" id="reg-password" minlength="6" placeholder="密码"
                                 class="am-form-field" required />
                         </div>
@@ -224,7 +219,7 @@
         scale = 1;
         dragging = false;
         lastTime = 1577874127;
-        timeLimit = 0;
+        timeLimit = ${delay};
         rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
         nowInterval = 0;
         currentId = 0;
@@ -265,7 +260,6 @@
             $('#custom-color-box').removeClass("selected");
             $(this).addClass("selected");
             nowColor = $(this).attr('data-cid');
-            // console.log(nowColor);
         }
 
         $('#custom-color-box').bind("click", bindCustomColor);
@@ -278,7 +272,6 @@
                 CustomColor = e.originalEvent.target.value.substr(1);
             }
             nowColor = CustomColor;
-            // console.log(nowColor);
         }
 
         zoom = function (s) {
@@ -297,10 +290,10 @@
         $('.paleitem').bind("click", binditem);
         $('[data-cid=0]').addClass("selected");
         $('#mycanvas').bind("click", function () {
-            // if (!$.AMUI.utils.cookie.get('username')) {
-            //     alert("请先登录");
-            //     return;
-            // }
+            if (!$.AMUI.utils.cookie.get('username')) {
+                alert("请先登录");
+                return;
+            }
             if (new Date() < (lastTime + timeLimit) * 1000) {
                 alert("冷却时间未到，暂时不能涂色");
                 return;
@@ -422,44 +415,41 @@
             $('#login-modal').modal('close');
             $('#register-modal').modal();
         });
+
         function timeDown(seconds) {
-            seconds = seconds.toString().length == 1 ? '0' + seconds : seconds;
+            seconds = seconds.toString().length === 1 ? '0' + seconds : seconds;
             $("#send-captcha").text(seconds + "后重试");
             if (parseInt(seconds) > 1) {
                 setTimeout(function () {
                     timeDown(seconds - 1);
-                }, 1000)
+                }, 1000);
+            } else {
+                $("#send-captcha").button('reset');
             }
-            else {
-                $("#send-captcha").text("发送验证码");
-                $("#send-captcha").css({ 'background-color': 'blue' });
-                $("#send-captcha").attr("disabled", false);
-            }
-        };
+        }
         $("#send-captcha").click(function (event) {
             event.preventDefault()
             let email = $('#register-form').serializeObject().email;
-            console.log($('#register-form').serializeObject());
-            $.get('/paintBoard/captcha?email=' + email
-                , function (resp) {
-                    console.log(resp);
-                    if (resp.status !== 200) {
-                        alert(resp.data);
-                    } else {
-                        $("#send-captcha").css({ 'background-color': 'gray' });
-                        $("#send-captcha").attr("disabled", true);
-                        timeDown(5)
-                    }
-                });
-        })
+            $.get('/paintBoard/captcha?email=' + email, function (resp) {
+                if (resp.status == 200) {
+                    $("#send-captcha").button('loading');
+                    timeDown(60);
+                } else {
+                    alert(resp.data);
+                }
+            });
+        });
         $('#register-form').submit(function () {
             let data = $('#register-form').serializeObject();
             $.post('/paintBoard/user', JSON.stringify(data), function (resp) {
                 if (resp.status !== 200) {
                     alert(resp.data);
+                } else {
+                    alert("注册成功！");
+                    $('#register-modal').modal('close');
                 }
             });
-        })
+        });
 
         function getCountDown(timestamp) {
             clearInterval(nowInterval);
@@ -519,7 +509,6 @@
             try {
                 ws = new WebSocket('${wsurl}/paintBoard/ws');
             } catch (e) {
-                //alert("无法连接追踪服务器");
                 return;
             }
 
