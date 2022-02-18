@@ -431,7 +431,6 @@
             event.preventDefault()
             let email = $('#register-form').serializeObject().email;
             $.get('/paintBoard/captcha?email=' + email, function (resp) {
-                console.log(resp);
                 if (resp.status == 200) {
                     $("#send-captcha").button('loading');
                     timeDown(60);
