@@ -107,7 +107,11 @@ fun Routing.loginPage() {
                 sendCaptcha(email, capt)
                 call.sessions.set(RegisterSession(email, capt, System.currentTimeMillis()))
             }
-            call.respond(HttpStatusCode.OK)
+            call.respondText(
+                "{\"status\": 200}",
+                contentType = ContentType.Application.Json,
+                status = HttpStatusCode.OK
+            )
         }
     }
 

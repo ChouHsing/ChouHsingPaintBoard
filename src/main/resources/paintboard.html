@@ -430,11 +430,15 @@
         $("#send-captcha").click(function (event) {
             event.preventDefault()
             let email = $('#register-form').serializeObject().email;
-            $.get('/paintBoard/captcha?email=' + email).success(
-                function () {
+            $.get('/paintBoard/captcha?email=' + email, function (resp) {
+                console.log(resp);
+                if (resp.status == 200) {
                     $("#send-captcha").button('loading');
                     timeDown(60);
-                });
+                } else {
+                    alert(resp.data);
+                }
+            });
         });
         $('#register-form').submit(function () {
             let data = $('#register-form').serializeObject();
