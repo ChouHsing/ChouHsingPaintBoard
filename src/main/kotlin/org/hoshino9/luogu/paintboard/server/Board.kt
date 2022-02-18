@@ -96,8 +96,8 @@ suspend fun rollback(id: Int, time: Long) {
 suspend fun blame(id: Int, time: Long, x: Int, y: Int): User? {
     val record = mongo.getCollection<PaintRecord>("paintboard$id")
         .find(PaintRecord::time lte time, PaintRecord::x eq x, PaintRecord::y eq y)
-        .descendingSort(PaintRecord::time).first()
-    return mongo.getCollection<User>().findOne(User::_id eq record?.userId?.toId())
+        .descendingSort(PaintRecord::time).first() ?: return null
+    return mongo.getCollection<User>().findOne(User::username eq record.user)
 }
 
 fun Routing.board() {
@@ -152,7 +152,7 @@ fun Routing.board() {
                         .insertOne(
                             PaintRecord(
                                 System.currentTimeMillis(),
-                                call.authentication.principal<UserSession>()?.id ?: "not logged in?",
+                                call.authentication.principal<UserSession>()?.username ?: "not logged in?",
                                 req.x, req.y, req.color.toInt(16)
                             )
                         )
