@@ -72,6 +72,11 @@
         .description {
             margin-top: 10px;
         }
+
+        #mask {
+            background-color: #00000077;
+            position: absolute;
+        }
     </style>
 </head>
 
@@ -97,6 +102,7 @@
                 <div class="am-u-lg-11 am-u-lg-centered" id="canvas-box">
                     <div class="loading">选择日期并点击查看历史</div>
                     <canvas width=800 height=400 id='mycanvas'> </canvas>
+                    <div id="mask"></div>
                 </div>
             </div>
         </div>
@@ -104,6 +110,11 @@
             <input type="datetime-local" id="time-selector" />
             <button type="button" class="am-btn am-btn-primary am-radius" id="history-btn">查看历史</button>
             <button type="button" class="am-btn am-btn-danger am-radius" id="rollback-btn">回滚</button>
+            <button type="button" class="am-btn am-radius am-disabled" id="select-lt-btn">设为填充左上角</button>
+            <button type="button" class="am-btn am-radius am-disabled" id="select-rb-btn">设为填充右下角</button>
+            <label for="custom-color">填充色</label>
+            <input type="color" id="custom-color" value="#ffffff">
+            <button type="button" class="am-btn am-radius am-disabled" id="brush-btn">填充</button>
             <p id="info"></p>
         </div>
     </div>
@@ -119,11 +130,24 @@
         dragged = 0;
         rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
         currentId = 0;
+        clickedX = null;
+        clickedY = null;
+        x1 = null;
+        y1 = null;
+        x2 = null;
+        y2 = null;
+        color = "ffffff";
+
         adminPassword = prompt("管理员密码")
         $.post('/paintBoard/test_admin', JSON.stringify({ password: adminPassword }))
             .fail(function () {
                 alert("密码错误");
             })
+
+        const now = new Date();
+        now.setMilliseconds(null);
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        $('#time-selector').val(now.toISOString().slice(0, -1));
 
         zoom = function (s) {
             scale = s;
@@ -138,6 +162,10 @@
         $('#mycanvas').bind("click", function () {
             let x = parseInt(event.offsetX / scale);
             let y = parseInt(event.offsetY / scale);
+            clickedX = x;
+            clickedY = y;
+            $('#select-lt-btn').removeClass("am-disabled");
+            $('#select-rb-btn').removeClass("am-disabled");
             let time = new Date($('#time-selector').val()).getTime();
             let url = "/paintBoard/blame?id=" + currentId + "&time=" + time + "&x=" + x + "&y=" + y;
             $.post(url, JSON.stringify({ password: adminPassword }), function (resp) {
@@ -145,8 +173,8 @@
                 if (data == null) {
                     $('#info').text("(" + x + "," + y + ") 未曾修改");
                 } else {
-                    $('#info').text("(" + x + "," + y + ") 用户" + data.user + "于" +
-                        new Date(data.time).toLocaleString() + "修改为#" + data.color.toString(16));
+                    $('#info').text("(" + x + "," + y + ") 用户名:" + data.username + " 实名:" + data.name
+                        + " 学号: " + data.stuId + " 邮箱:" + data.email);
                 }
             });
         });
@@ -271,6 +299,51 @@
                 });
             }
         })
+
+        $('#select-lt-btn').click(function () {
+            x1 = clickedX;
+            y1 = clickedY;
+            if (x2 != null && y2 != null) {
+                $('#brush-btn').removeClass("am-disabled");
+                showMask();
+            }
+        })
+
+        $('#select-rb-btn').click(function () {
+            x2 = clickedX;
+            y2 = clickedY;
+            if (x1 != null && y1 != null) {
+                $('#brush-btn').removeClass("am-disabled");
+                showMask();
+            }
+        })
+
+        function showMask() {
+            $('#mask').css({
+                left: x1,
+                top: y1,
+                width: x2 - x1 + 1,
+                height: y2 - y1 + 1
+            })
+        }
+
+        $('#brush-btn').click(function () {
+            if (confirm("确认填充？（将会填充到实时的画板上，而不是现在查看的历史）")) {
+                let url = "/paintBoard/brush?id=" + currentId + "&x1=" + x1 + "&y1=" + y1 + "&x2=" + x2 + "&y2=" + y2 + "&color" + color;
+                $.post(url, JSON.stringify({ password: adminPassword }), function (resp) {
+                    alert("填充完成，请调整到最新时间查看历史")
+                });
+            }
+        })
+
+        $('#custom-color-box').bind("click", bindCustomColor);
+        $('#custom-color').bind("input", bindCustomColor);
+
+        function bindCustomColor(e) {
+            if (e.originalEvent.target.value) {
+                color = e.originalEvent.target.value.substr(1);
+            }
+        }
     </script>
 
 
