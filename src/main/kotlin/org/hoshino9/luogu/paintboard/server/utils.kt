@@ -2,6 +2,10 @@ package org.hoshino9.luogu.paintboard.server
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.util.pipeline.*
 import java.security.MessageDigest
 
 fun String.parseJson(): JsonElement {
@@ -25,4 +29,18 @@ fun encrypt(s: String, salt: String = getSalt(16)) = with(StringBuilder()) {
     val md5 = toHexString(MessageDigest.getInstance("MD5").digest((s + salt).toByteArray()))
     (0 until 16).onEach { i -> append(salt[i]).append(md5[i * 2]).append(md5[i * 2 + 1]) }
     toString()
+}
+
+suspend fun PipelineContext<*, ApplicationCall>.catchAndRespond(
+    block: suspend PipelineContext<*, ApplicationCall>.() -> Unit
+) {
+    try {
+        block()
+    } catch (e: Throwable) {
+        call.respondText(
+            "{\"status\": 400,\"data\": \"${e.message}\"}",
+            contentType = ContentType.Application.Json,
+            status = HttpStatusCode.OK
+        )
+    }
 }

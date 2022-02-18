@@ -12,7 +12,9 @@ import io.ktor.routing.post
 import io.ktor.sessions.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.litote.kmongo.*
+import org.litote.kmongo.eq
+import org.litote.kmongo.gt
+import org.litote.kmongo.lte
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
@@ -100,6 +102,19 @@ suspend fun blame(id: Int, time: Long, x: Int, y: Int): User? {
     return mongo.getCollection<User>().findOne(User::username eq record.user)
 }
 
+suspend fun brush(id: Int, x1: Int, y1: Int, x2: Int, y2: Int, color: Int) {
+    val points = mutableListOf<PaintRecord>()
+    val time = System.currentTimeMillis()
+    stringCache[id] = null
+    (y1 until y2).onEach { y ->
+        (x1 until x2).onEach { x ->
+            boards[id][x, y] = color
+            points.add(PaintRecord(time, "admin", x, y, color))
+        }
+    }
+    mongo.getCollection<PaintRecord>("paintboard$id").insertMany(points)
+}
+
 fun Routing.board() {
     post("/paintBoard/test_admin") {
         manageRequest {
@@ -108,7 +123,7 @@ fun Routing.board() {
     }
 
     get("/paintBoard/board") {
-        try {
+        catchAndRespond {
             val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
             val str = stringCache[id]
             if (str != null) {
@@ -118,18 +133,12 @@ fun Routing.board() {
                 stringCache[id] = newStr
                 call.respondText(newStr)
             }
-        } catch (e: Throwable) {
-            call.respondText(
-                "{\"status\": 400,\"data\": \"${e.message}\"}",
-                ContentType.Application.Json,
-                HttpStatusCode.OK
-            )
         }
     }
 
     authenticate("auth-session") {
         post("/paintBoard/paint") {
-            try {
+            catchAndRespond {
                 val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
                 val body = call.receive<String>()
                 val req = Gson().fromJson(body, PaintRequest::class.java)
@@ -164,12 +173,6 @@ fun Routing.board() {
                         )
                 }
 
-            } catch (e: Throwable) {
-                call.respondText(
-                    "{\"status\": 400,\"data\": \"${e.message}\"}",
-                    ContentType.Application.Json,
-                    HttpStatusCode.OK
-                )
             }
         }
     }

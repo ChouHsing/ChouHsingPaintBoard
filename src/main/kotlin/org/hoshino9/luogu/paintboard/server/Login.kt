@@ -3,29 +3,15 @@ package org.hoshino9.luogu.paintboard.server
 import com.aliyun.dm20151123.Client
 import com.aliyun.dm20151123.models.SingleSendMailRequest
 import com.aliyun.teaopenapi.models.Config
-import com.google.gson.*
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.sessions.*
-import io.ktor.util.pipeline.*
 import org.litote.kmongo.*
-
-suspend fun PipelineContext<Unit, ApplicationCall>.catchAndRespond(
-    block: suspend PipelineContext<Unit, ApplicationCall>.() -> Unit
-) {
-    try {
-        block()
-    } catch (e: Throwable) {
-        call.respondText(
-            "{\"status\": 400,\"data\": \"${e.message}\"}",
-            contentType = ContentType.Application.Json,
-            status = HttpStatusCode.OK
-        )
-    }
-}
 
 suspend fun userAuth(user: User): User? {
     val query = mongo.getCollection<User>()
@@ -46,11 +32,11 @@ fun sendCaptcha(email: String, captcha: String) {
         .setAccountName("aliyundm@zxoj.top")
         .setAddressType(1)
         .setReplyToAddress(false)
-        .setSubject("周行算协冬日画板注册验证码")
+        .setSubject("周行算协新春画板注册验证码")
         .setToAddress(email)
         .setFromAlias("周行算协")
         .setTextBody(
-            "您好，您的周行算协冬日绘板注册验证码为：$captcha，该验证码5分钟内有效。"
+            "您好，您的周行算协新春绘板注册验证码为：$captcha，该验证码5分钟内有效。"
         )
 
     client.singleSendMail(req)

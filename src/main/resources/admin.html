@@ -84,7 +84,7 @@
     <header class="am-topbar am-topbar-fixed-top">
         <div class="am-container">
             <h1 class="am-topbar-brand">
-                <a href="#">周行算协冬日绘板 管理员</a>
+                <a href="#">周行算协新春绘板 管理员</a>
             </h1>
             <div class="am-collapse am-topbar-collapse">
                 <ul class="am-nav am-nav-pills am-topbar-nav">
@@ -280,12 +280,12 @@
                     });
                 });
                 ctx.putImageData(imgData, 0, 0);
-            })
+            });
         }
 
         $("#history-btn").click(function () {
             let time = new Date($('#time-selector').val()).getTime();
-            initialPaint(currentId, time)
+            initialPaint(currentId, time);
         })
 
         $("#rollback-btn").click(function () {
@@ -329,9 +329,9 @@
 
         $('#brush-btn').click(function () {
             if (confirm("确认填充？（将会填充到实时的画板上，而不是现在查看的历史）")) {
-                let url = "/paintBoard/brush?id=" + currentId + "&x1=" + x1 + "&y1=" + y1 + "&x2=" + x2 + "&y2=" + y2 + "&color" + color;
+                let url = "/paintBoard/brush?id=" + currentId + "&x1=" + x1 + "&y1=" + y1 + "&x2=" + x2 + "&y2=" + y2 + "&color=" + color;
                 $.post(url, JSON.stringify({ password: adminPassword }), function (resp) {
-                    alert("填充完成，请调整到最新时间查看历史")
+                    alert("填充完成，请调整到最新时间查看历史");
                 });
             }
         })
