@@ -101,6 +101,12 @@ suspend fun blame(id: Int, time: Long, x: Int, y: Int): User? {
 }
 
 fun Routing.board() {
+    post("/paintBoard/test_admin") {
+        manageRequest {
+            call.respond(HttpStatusCode.OK)
+        }
+    }
+
     get("/paintBoard/board") {
         try {
             val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
