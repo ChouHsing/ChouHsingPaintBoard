@@ -95,6 +95,8 @@ fun main() {
         adminPage = adminPage.replace("\${wsurl}", config.getProperty("wsurl"))
     }
     delay = (config.getProperty("delay")?.toLong() ?: 0) * 1000
+    indexPage = indexPage.replace("\${delay}", delay.toString())
+
 
     runBlocking {
         initDB()

@@ -219,7 +219,7 @@
         scale = 1;
         dragging = false;
         lastTime = 1577874127;
-        timeLimit = 0;
+        timeLimit = ${delay};
         rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
         nowInterval = 0;
         currentId = 0;
@@ -444,6 +444,9 @@
             $.post('/paintBoard/user', JSON.stringify(data), function (resp) {
                 if (resp.status !== 200) {
                     alert(resp.data);
+                } else {
+                    alert("注册成功！");
+                    $('#register-modal').modal('close');
                 }
             });
         });
