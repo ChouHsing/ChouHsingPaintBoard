@@ -24,12 +24,6 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: suspend Pip
 }
 
 fun Routing.managePage() {
-    post("/paintBoard/test_admin") {
-        manageRequest {
-            call.respond(HttpStatusCode.OK)
-        }
-    }
-
     post("/paintBoard/history") {
         manageRequest {
             try {

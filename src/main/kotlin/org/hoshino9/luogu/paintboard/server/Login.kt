@@ -46,10 +46,12 @@ fun sendCaptcha(email: String, captcha: String) {
         .setAccountName("aliyundm@zxoj.top")
         .setAddressType(1)
         .setReplyToAddress(false)
-        .setSubject("周行算协冬日画板验证码")
+        .setSubject("周行算协冬日画板注册验证码")
         .setToAddress(email)
         .setFromAlias("周行算协")
-        .setTextBody(captcha)
+        .setTextBody(
+            "您好，您的周行算协冬日绘板注册验证码为：" + captcha + "，该验证码5分钟内有效。"
+        )
 
     client.singleSendMail(req)
 }
@@ -96,17 +98,16 @@ fun Routing.loginPage() {
             val email = call.parameters["email"] ?: throw RequestException("请输入邮箱")
             val query = mongo.getCollection<User>().findOne(User::email eq email)
 
+            mongo.getCollection<Identity>().findOne(Identity::email eq email)
+                ?: throw RequestException("未经验证的邮箱，请确认该邮箱已报名")
             if (query != null) { throw RequestException("该邮箱已被注册") }
+
             if (config.getProperty("captcha").toBoolean()) {
                 val capt = getSalt(6,"0123456789")
                 sendCaptcha(email, capt)
                 call.sessions.set(RegisterSession(email, capt, System.currentTimeMillis()))
             }
-            call.respondText(
-                "{\"status\": 200}",
-                contentType = ContentType.Application.Json,
-                status = HttpStatusCode.OK
-            )
+            call.respond(HttpStatusCode.OK)
         }
     }
 
@@ -128,9 +129,12 @@ fun Routing.loginPage() {
         catchAndRespond {
             val body = call.receive<String>()
             val req = Gson().fromJson(body, User::class.java)
-            val query = mongo.getCollection<User>()
-                .findOne(or(User::username eq req.username, User::email eq req.email))
-            if (query != null) { throw RequestException("该用户名或邮箱已被注册") }
+            val id = mongo.getCollection<Identity>().findOne(Identity::email eq req.email)
+                ?: throw RequestException("未经验证的邮箱，请确认该邮箱已报名")
+
+            if (mongo.getCollection<User>()
+                    .findOne(or(User::username eq req.username, User::email eq req.email))
+                != null) { throw RequestException("该用户名或邮箱已被注册") }
 
             if (config.getProperty("captcha").toBoolean()) {
                 val capt = Gson().fromJson(body, JsonObject::class.java).get("captcha").asString
@@ -139,7 +143,8 @@ fun Routing.loginPage() {
                     System.currentTimeMillis() - session.time > 5 * 60 * 1000) throw RequestException("验证码无效")
             }
 
-            mongo.getCollection<User>().insertOne(User(newId(), req.username, req.email, encrypt(req.password)))
+            mongo.getCollection<User>()
+                .insertOne(User(newId(), req.username, req.email, encrypt(req.password), id.name, id.stuId))
 
             call.sessions.clear<RegisterSession>()
             call.respondText(
