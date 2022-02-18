@@ -50,7 +50,7 @@ fun sendCaptcha(email: String, captcha: String) {
         .setToAddress(email)
         .setFromAlias("周行算协")
         .setTextBody(
-            "您好，您的周行算协冬日绘板注册验证码为：" + captcha + "，该验证码5分钟内有效。"
+            "您好，您的周行算协冬日绘板注册验证码为：$captcha，该验证码5分钟内有效。"
         )
 
     client.singleSendMail(req)

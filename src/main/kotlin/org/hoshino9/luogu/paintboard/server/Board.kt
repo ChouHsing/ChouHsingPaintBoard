@@ -97,7 +97,7 @@ suspend fun blame(id: Int, time: Long, x: Int, y: Int): User? {
     val record = mongo.getCollection<PaintRecord>("paintboard$id")
         .find(PaintRecord::time lte time, PaintRecord::x eq x, PaintRecord::y eq y)
         .descendingSort(PaintRecord::time).first()
-    return mongo.getCollection<User>().findOne(User::_id eq record?.userId?.toId<User>())
+    return mongo.getCollection<User>().findOne(User::_id eq record?.userId?.toId())
 }
 
 fun Routing.board() {
