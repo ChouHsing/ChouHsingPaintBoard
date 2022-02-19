@@ -116,12 +116,6 @@ suspend fun brush(id: Int, x1: Int, y1: Int, x2: Int, y2: Int, color: Int) {
 }
 
 fun Routing.board() {
-    post("/paintBoard/test_admin") {
-        manageRequest {
-            call.respond(HttpStatusCode.OK)
-        }
-    }
-
     get("/paintBoard/board") {
         catchAndRespond {
             val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")

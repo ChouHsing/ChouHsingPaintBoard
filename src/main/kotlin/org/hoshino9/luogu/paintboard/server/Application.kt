@@ -157,13 +157,8 @@ fun main() {
                 try {
                     send("{\"type\": \"result\"}")
                     sessions.add(this)
-
-                    for (frame in incoming) {
-                        println("Received: ${String(frame.readBytes())}")
-                    }
                 } finally {
                     sessions.remove(this)
-                    println("Removed.")
                 }
             }
         }
