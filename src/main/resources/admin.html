@@ -72,11 +72,6 @@
         .description {
             margin-top: 10px;
         }
-
-        #mask {
-            background-color: #00000077;
-            position: absolute;
-        }
     </style>
 </head>
 
@@ -102,7 +97,6 @@
                 <div class="am-u-lg-11 am-u-lg-centered" id="canvas-box">
                     <div class="loading">选择日期并点击查看历史</div>
                     <canvas width=800 height=400 id='mycanvas'> </canvas>
-                    <div id="mask"></div>
                 </div>
             </div>
         </div>
@@ -318,13 +312,17 @@
             }
         })
 
+        let imgData = null;
         function showMask() {
-            $('#mask').css({
-                left: x1,
-                top: y1,
-                width: x2 - x1 + 1,
-                height: y2 - y1 + 1
-            })
+            if (x1 > x2 || y1 > y2) {
+                alert("两点位置关系有误");
+                return;
+            }
+            if (imgData) ctx.putImageData(imgData, 0, 0);
+            imgData = ctx.getImageData(0, 0, 800, 600);
+            ctx.fillStyle = "rgb(0,0,0,0.5)"
+            ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+            drawedMask = true;
         }
 
         $('#brush-btn').click(function () {
